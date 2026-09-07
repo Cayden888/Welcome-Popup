@@ -88,7 +88,7 @@ DEFAULT_WELCOME_TEXT = (
 )
 
 DEFAULT_BUTTONS = [
-    ("\U0001F4D6 EXTRA BONUS", "https://extrabonus88.com/signup?subreferrer=F1campaign"),
+    ("\U0001F4D6 EXTRA BONUS", "https://pixelharvia.com/r/9u9GRvr"),
     ("\U0001F4AC Our Channel", "https://t.me/WBExtraBonus88"),
     ("\U0001F310 Join the Lucky Draw", "https://t.me/WBF1Welcome_Bot"),
 ]
