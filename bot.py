@@ -78,7 +78,9 @@ if _missing:
 # =============================================================
 
 DEFAULT_WELCOME_TEXT = (
-    "\U0001F44B *Welcome to our community, {name}!*\n\n"
+    "\U0001F44B *Welcome to WBExtraBonus!*\n\n"
+    "Glad to have you here!\n"
+    "This is where you can get the *latest updates, community activities & surprises.*\n"
     "To get started, please:\n\n"
     "1\uFE0F\u20E3 Read the pinned rules\n"
     "2\uFE0F\u20E3 Introduce yourself\n"
@@ -86,9 +88,9 @@ DEFAULT_WELCOME_TEXT = (
 )
 
 DEFAULT_BUTTONS = [
-    ("\U0001F4D6 Read the Rules", "https://example.com/rules"),
-    ("\U0001F4AC Join the Chat", "https://t.me/yourchat"),
-    ("\U0001F310 Our Website", "https://example.com"),
+    ("\U0001F4D6 EXTRA BONUS", "https://extrabonus88.com/signup?subreferrer=F1campaign"),
+    ("\U0001F4AC Our Channel", "https://t.me/WBExtraBonus88"),
+    ("\U0001F310 Join the Lucky Draw", "https://t.me/WBF1Welcome_Bot"),
 ]
 
 # =============================================================
