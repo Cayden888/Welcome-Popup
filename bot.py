@@ -78,14 +78,11 @@ if _missing:
 # =============================================================
 
 DEFAULT_WELCOME_TEXT = (
-  # "\U0001F44B *Welcome to our community, {name}!*\n\n"
-    "\U0001F44B *Welcome to WBExtraBonus!\n
-    Glad to have you here! U+1F389 \n
-    This is where you can get the latest updates, community activities & surprises.\n\n"
+    "\U0001F44B *Welcome to our community, {name}!*\n\n"
     "To get started, please:\n\n"
-    "1\uFE0F\u20E3 Read the Rules — Know the community guidelines \n"
-    "2\uFE0F\u20E3 Join the Chat — Say hi & meet the community \n"
-    "3\uFE0F\u20E3 Check Updates — Don’t miss the latest news & events \n"
+    "1\uFE0F\u20E3 Read the pinned rules\n"
+    "2\uFE0F\u20E3 Introduce yourself\n"
+    "3\uFE0F\u20E3 Check out our resources\n"
 )
 
 DEFAULT_BUTTONS = [
