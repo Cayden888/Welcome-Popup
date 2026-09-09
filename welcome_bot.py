@@ -138,6 +138,17 @@ async def reply_temp(update, context, text, delay=AUTO_DELETE_SECONDS, delete_co
         )
     return msg
 
+async def _dm_start_welcome(bot, user_id, lang, name):
+    """Send the /start welcome (Register Now / Channel / Draw Group buttons) to the user's DM."""
+    try:
+        text = await get_msg("dm_start", lang, DM_START[lang], name=name)
+        await bot.send_message(
+            chat_id=user_id, text=text,
+            parse_mode="Markdown", reply_markup=start_keyboard(),
+        )
+    except Exception:
+        pass  # user has never started the bot — Telegram blocks the DM
+
 async def supabase_get(table, params):
     async with httpx.AsyncClient() as client:
         r = await client.get(f"{SUPABASE_URL}/rest/v1/{table}", headers=get_headers(), params=params)
@@ -271,10 +282,15 @@ async def register_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # Only allow in DM
     if update.effective_chat.type != "private":
+        name = user.first_name or "Friend"
         await reply_temp(
             update, context,
             "📩 Please DM me to register: @WBExtraBonus88_bot",
-            parse_mode="Markdown"
+            parse_mode="Markdown",
+            dm_copy=False,
+        )
+        context.application.create_task(
+            _dm_start_welcome(context.bot, user.id, lang, name)
         )
         return
     existing = await supabase_get("registrations", {"telegram_id": f"eq.{user.id}"})
@@ -555,9 +571,14 @@ async def join_giveaway(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # Check approved
     if not await is_approved(user.id):
+        # Group: short redirect (auto-deletes). Their bot DM: full /start welcome + buttons.
         await reply_temp(
             update, context,
             "📩 Please DM me to register first: @WBF1Welcome_Bot",
+            dm_copy=False,
+        )
+        context.application.create_task(
+            _dm_start_welcome(context.bot, user.id, lang, name)
         )
         return
 
