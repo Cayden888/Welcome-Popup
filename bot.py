@@ -2,6 +2,8 @@
 Telegram Welcome Bot  (Supabase-editable edition)
 -------------------------------------------------
 Greets each person by name and shows tappable buttons.
+The greeting posted in a GROUP disappears after 30 seconds (see
+WELCOME_DELETE_SECONDS). The /start greeting in the bot's DM stays.
 
 Pipeline:  GitHub (code) -> Supabase (database) -> Railway (hosting) -> Telegram (bot)
 
@@ -56,6 +58,9 @@ log = logging.getLogger("welcome-bot")
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+
+# The group welcome disappears after this many seconds
+WELCOME_DELETE_SECONDS = 30
 
 _missing = [
     name
@@ -183,12 +188,22 @@ def build_keyboard(buttons) -> InlineKeyboardMarkup | None:
     return InlineKeyboardMarkup(rows) if rows else None
 
 
-async def send_welcome(bot, chat_id: int, user) -> None:
-    """Fetch the LATEST text and buttons from Supabase, then greet."""
+async def _delete_later(bot, chat_id: int, message_id: int, delay: int) -> None:
+    """Delete a message after `delay` seconds (keeps the group clean)."""
+    await asyncio.sleep(delay)
+    try:
+        await bot.delete_message(chat_id=chat_id, message_id=message_id)
+    except Exception:
+        log.warning("Could not delete message %s in chat %s", message_id, chat_id)
+
+
+async def send_welcome(bot, chat_id: int, user):
+    """Fetch the LATEST text and buttons from Supabase, then greet.
+    Returns the sent message so callers can schedule the 30s clean-up."""
     text, buttons = await get_welcome_config()
     keyboard = build_keyboard(buttons)
     try:
-        await bot.send_message(
+        return await bot.send_message(
             chat_id=chat_id,
             text=text.replace("{name}", user.mention_markdown()),
             parse_mode="Markdown",
@@ -198,7 +213,7 @@ async def send_welcome(bot, chat_id: int, user) -> None:
         # The edited text likely has broken formatting (a stray * or _).
         # Send it as plain text so the greeting still goes out.
         log.warning("Markdown in welcome_text failed to parse; sent as plain text")
-        await bot.send_message(
+        return await bot.send_message(
             chat_id=chat_id,
             text=text.replace("{name}", user.first_name),
             reply_markup=keyboard,
@@ -208,7 +223,12 @@ async def send_welcome(bot, chat_id: int, user) -> None:
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Runs when a person opens the bot and taps Start."""
     user = update.effective_user
-    await send_welcome(context.bot, update.effective_chat.id, user)
+    msg = await send_welcome(context.bot, update.effective_chat.id, user)
+    # In the bot's DM the greeting stays; if /start happens in a group, clean it up.
+    if update.effective_chat.type != "private" and msg:
+        context.application.create_task(
+            _delete_later(context.bot, update.effective_chat.id, msg.message_id, WELCOME_DELETE_SECONDS)
+        )
     await log_member(user, update.effective_chat.id, "start")
 
 
@@ -224,7 +244,12 @@ async def welcome_new_member(update: Update, context: ContextTypes.DEFAULT_TYPE)
         return
 
     user = result.new_chat_member.user
-    await send_welcome(context.bot, result.chat.id, user)
+    msg = await send_welcome(context.bot, result.chat.id, user)
+    # The group welcome deletes itself after 30 seconds
+    if msg:
+        context.application.create_task(
+            _delete_later(context.bot, result.chat.id, msg.message_id, WELCOME_DELETE_SECONDS)
+        )
     await log_member(user, result.chat.id, "group_join")
 
 
@@ -236,7 +261,7 @@ def main() -> None:
     # someone joining a group where the bot is an admin
     app.add_handler(ChatMemberHandler(welcome_new_member, ChatMemberHandler.CHAT_MEMBER))
 
-    log.info("Bot is running. Press Ctrl+C to stop.")
+    log.info("Welcome Bot [30s auto-delete] is running. Press Ctrl+C to stop.")
     app.run_polling(allowed_updates=Update.ALL_TYPES)
 
 
