@@ -2,7 +2,7 @@
 Telegram Welcome Bot  (Supabase-editable edition)
 -------------------------------------------------
 Greets each person by name and shows tappable buttons.
-The greeting posted in a GROUP disappears after 30 seconds (see
+The greeting posted in a GROUP disappears after 15 seconds (see
 WELCOME_DELETE_SECONDS). The /start greeting in the bot's DM stays.
 
 Pipeline:  GitHub (code) -> Supabase (database) -> Railway (hosting) -> Telegram (bot)
@@ -60,7 +60,7 @@ SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 
 # The group welcome disappears after this many seconds
-WELCOME_DELETE_SECONDS = 30
+WELCOME_DELETE_SECONDS = 15
 
 _missing = [
     name
@@ -199,7 +199,7 @@ async def _delete_later(bot, chat_id: int, message_id: int, delay: int) -> None:
 
 async def send_welcome(bot, chat_id: int, user):
     """Fetch the LATEST text and buttons from Supabase, then greet.
-    Returns the sent message so callers can schedule the 30s clean-up."""
+    Returns the sent message so callers can schedule the 15s clean-up."""
     text, buttons = await get_welcome_config()
     keyboard = build_keyboard(buttons)
     try:
@@ -245,7 +245,7 @@ async def welcome_new_member(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
     user = result.new_chat_member.user
     msg = await send_welcome(context.bot, result.chat.id, user)
-    # The group welcome deletes itself after 30 seconds
+    # The group welcome deletes itself after 15 seconds
     if msg:
         context.application.create_task(
             _delete_later(context.bot, result.chat.id, msg.message_id, WELCOME_DELETE_SECONDS)
@@ -261,7 +261,7 @@ def main() -> None:
     # someone joining a group where the bot is an admin
     app.add_handler(ChatMemberHandler(welcome_new_member, ChatMemberHandler.CHAT_MEMBER))
 
-    log.info("Welcome Bot [30s auto-delete] is running. Press Ctrl+C to stop.")
+    log.info("Welcome Bot [15s auto-delete] is running. Press Ctrl+C to stop.")
     app.run_polling(allowed_updates=Update.ALL_TYPES)
 
 
