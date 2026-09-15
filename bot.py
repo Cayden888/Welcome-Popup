@@ -60,7 +60,7 @@ SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 
 # The group welcome disappears after this many seconds
-WELCOME_DELETE_SECONDS = 15
+WELCOME_DELETE_SECONDS = 300
 
 _missing = [
     name
