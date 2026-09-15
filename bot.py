@@ -51,6 +51,7 @@ from dotenv import load_dotenv
 from supabase import Client, create_client
 from telegram import BotCommand, InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.error import BadRequest, Forbidden
+from telegram.helpers import escape_markdown
 from telegram.ext import (
     Application,
     ChatJoinRequestHandler,
@@ -347,7 +348,7 @@ async def send_welcome(bot, chat_id: int, user):
     try:
         return await bot.send_message(
             chat_id=chat_id,
-            text=text.replace("{name}", user.mention_markdown()),
+            text=text.replace("{name}", escape_markdown(user.full_name, version=1)),
             parse_mode="Markdown",
             reply_markup=keyboard,
         )
@@ -357,7 +358,7 @@ async def send_welcome(bot, chat_id: int, user):
         log.warning("Markdown in welcome_text failed to parse; sent as plain text")
         return await bot.send_message(
             chat_id=chat_id,
-            text=text.replace("{name}", user.first_name),
+            text=text.replace("{name}", user.full_name),
             reply_markup=keyboard,
         )
 
@@ -403,14 +404,14 @@ async def text_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     keyboard = build_keyboard(buttons)
     try:
         await update.message.reply_text(
-            text.replace("{name}", user.mention_markdown()),
+            text.replace("{name}", escape_markdown(user.full_name, version=1)),
             parse_mode="Markdown",
             reply_markup=keyboard,
         )
     except BadRequest:
         # A stray * or _ broke the formatting; send it plain so it still goes out.
         await update.message.reply_text(
-            text.replace("{name}", user.first_name),
+            text.replace("{name}", user.full_name),
             reply_markup=keyboard,
         )
 
@@ -427,7 +428,7 @@ async def link_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         return  # not one of ours
 
     link = await get_setting(conf["key"], conf["default"])
-    text = conf["text"].replace("{link}", link).replace("{name}", user.first_name)
+    text = conf["text"].replace("{link}", link).replace("{name}", user.full_name)
 
     # A tappable button too, when the link looks usable.
     keyboard = build_keyboard([("Open", link)]) if link else None
