@@ -424,6 +424,9 @@ async def link_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     # A tappable button too, when the link looks usable.
     keyboard = build_keyboard([("Open", link)]) if link else None
     await update.message.reply_text(text, reply_markup=keyboard)
+
+
+async def welcome_new_member(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Runs when someone's membership in the group changes."""
     result = update.chat_member
     old_status = result.old_chat_member.status
