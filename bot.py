@@ -115,15 +115,23 @@ DM_DELETE_SECONDS = 180  # 3 minutes
 AUTO_APPROVE_JOIN_REQUESTS = True
 
 # =============================================================
-#  COMMAND MENU - the list users see when they tap "Menu"
-#  or type "/" in the chat.
+#  COMMANDS
 #
-#  TO ADD A COMMAND you only touch these two lists:
-#    1) BOT_COMMANDS - what shows in the menu (name + short description)
-#    2) TEXT_COMMANDS - what the bot replies when that command is tapped
-#  /start is handled separately (it sends the full Supabase welcome), so
-#  it does NOT need a line in TEXT_COMMANDS.
+#  The MENU LIST (what shows in the "/" popup) is set by YOU in
+#  BotFather - the code does NOT touch it, so BotFather is never
+#  overwritten.  Format to paste into BotFather (no leading slash):
+#      start - Show the welcome message
+#      help - What this bot can do
+#      join - How to join / the links
+#      insta - Our Instagram link
 #
+#  What the code DOES do is make each command actually reply when tapped:
+#    - TEXT_COMMANDS : commands that reply with fixed text
+#    - LINK_COMMANDS : commands that reply with a link stored in Supabase
+#  A command works when typed even if you don't list it in BotFather;
+#  listing it in BotFather just makes it show in the menu.
+#
+#  BOT_COMMANDS below is only a handy copy of the BotFather list above.
 #  Command names must be lowercase, no spaces (a-z, 0-9, underscore).
 # =============================================================
 
@@ -518,17 +526,12 @@ async def handle_join_request(update: Update, context: ContextTypes.DEFAULT_TYPE
     await log_member(user, req.chat.id, "join_request")
 
 
-async def _set_commands(app) -> None:
-    """Push the command list to Telegram so it shows in the Menu / '/' popup."""
-    try:
-        await app.bot.set_my_commands([BotCommand(name, desc) for name, desc in BOT_COMMANDS])
-        log.info("Command menu registered: %s", ", ".join(f"/{c}" for c, _ in BOT_COMMANDS))
-    except Exception:
-        log.exception("Could not set the command menu")
-
-
 def main() -> None:
-    app = Application.builder().token(BOT_TOKEN).post_init(_set_commands).build()
+    # NOTE: this bot does NOT push a command menu to Telegram, so it never
+    # overwrites what you set in BotFather. The commands below still WORK
+    # when typed or tapped - removing the menu push only affects the little
+    # list that appears in the "/" popup, which BotFather now owns.
+    app = Application.builder().token(BOT_TOKEN).build()
 
     # /start in a private chat
     app.add_handler(CommandHandler("start", start))
